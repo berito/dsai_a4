@@ -1,41 +1,87 @@
 # Project README
-
-## Project Structure
-
-This project is organized into the following directories:
-
-### 1. `csv/`
-- This directory contains the numerical results generated for each corresponding question number. The CSV files provide data that is essential for further analysis and visualization.
-
-### 2. `visualize/`
-- This folder contains Python code for visualizing the data in the `csv/` directory. The scripts within this folder generate graphs and plots to help analyze and interpret the data. These visualizations correspond to specific sections of the project, particularly the PI evaluation using `pthread` and `OpenMP`.
-
-### 3. `figure/`
-- This directory contains image files of the graphs created in the `visualize/` folder. The images are the outputs of the visualizations and are organized by question number. They include the visual results for:
- 
-
-## Description
-
-The project focuses on performing numerical evaluations and visualizations related to PI calculation using parallel computing techniques, including `pthread` and `OpenMP`. The workflow is as follows:
-
-1. Numerical results are generated and saved as CSV files in the `csv/` folder.
-2. Python code in the `visualize/` folder processes these CSV files to create various plots and graphs.
-3. The generated visualizations are saved as image files in the `figure/` directory for easy reference and presentation.
-
-## Usage
-
-1. To generate the data, run the respective evaluation scripts. The results will be saved in the `csv/` folder.
-2. To visualize the results, run the Python scripts in the `visualize/` folder. Ensure that the necessary Python libraries (e.g., `matplotlib`, `pandas`) are installed.
+Follow the steps below to compile, run, and test the Hadoop program:this instruction assumes you have setup the Hadoop environment variable to access the hadoop commands or else you need to cd to the hadoop directory
 
 
-## Prerequisites
+# Compile and Run the Program
 
-- Python 3.x
-- Required Python libraries:
-  - `matplotlib`
-  - `pandas`
-  - `numpy`
-  
-  You can install the required libraries using pip:
-  ```bash
-  pip install matplotlib pandas numpy
+Follow the steps below to compile, run, and test the Hadoop program:
+
+## 1. Compile the Program
+If the program is not compiled or you want to recompile it, execute the following commands:
+```bash
+hadoop com.sun.tools.javac.Main WordCount.java
+jar cf wc.jar WordCount*.class
+```
+
+## 2. Start the DataNode
+Before running the program, ensure the Hadoop DataNode is running. Use the following command:
+```bash
+start-dfs.sh
+```
+
+## 3. Delete Existing Output Directory
+If you are running the program multiple times (with or without stopwords), delete the existing output directory to avoid the "File already exists" exception. Run the following:
+```bash
+hdfs dfs -rm -r /user/{user_name}/wordcount/output
+```
+**Note:** Replace `{user_name}` with your actual username.
+
+## 4. Run the MapReduce Program Without Stopwords
+After starting the DataNode (refer to Step 2), execute the program without stopwords:
+```bash
+hadoop jar wc.jar WordCount /user/{user_name}/wordcount/input /user/{user_name}/wordcount/output/
+```
+
+## 5. View the Output of the MapReduce Program
+To check the results of the MapReduce job, use the following command to view the output:
+```bash
+hadoop fs -cat /user/{user_name}/wordcount/output/part-r-00000
+```
+
+## 6. Run the MapReduce Program With Stopwords
+To run the program using a stopwords file:
+1. Ensure the DataNode is running (refer to Step 2).
+2. Execute the program with the path to the stopwords file:
+```bash
+hadoop jar wc.jar WordCount /user/{user_name}/wordcount/input /user/{user_name}/wordcount/output/ ~/path/to/stop_words.txt
+```
+**Note:** Replace `~/path/to/stop_words.txt` with the actual path to your stopwords file.
+
+## 7. After completing stop datanodes
+```bash
+   stop-dfs.sh     // stop datanode
+```
+# Helpfull commands 
+### stopword used 
+  - https://github.com/stopwords-iso/stopwords-en/blob/master/stopwords-en.txt
+### version
+  - hadoop version
+### add to .bashrc assuming JAVA_HOME is setup
+   export HADOOP_CLASSPATH=${JAVA_HOME}/lib/tools.jar
+### compile 
+  - hadoop com.sun.tools.javac.Main WordCount.java
+  - jar cf wc.jar WordCount*.class
+### create input and output directory 
+  hdfs dfs -mkdir -p /user/ai-server-02/wordcount/input
+  hdfs dfs -mkdir -p /user/ai-server-02/wordcount/output
+### move files to input 
+  hdfs dfs -put /home/ai-server-02/code_repo/dsai_a4/books/*  /user/ai-server-02/wordcount/input
+### delete  
+   hdfs dfs -rm -r /user/ai-server-02/wordcount
+   hdfs dfs -rm -r /user/ai-server-02/wordcount/input
+   hdfs dfs -rm -r /user/ai-server-02/wordcount/output
+### run mapreduce program 
+ - [without removing stop words]
+    - hadoop jar wordcount.jar WordCount /path/to/input /path/to/output 
+ - [removing stop words]
+   - hadoop jar wordcount.jar WordCount /path/to/input /path/to/output /path/to/stopwords.txt
+### run 
+  hadoop jar wc.jar WordCount /user/ai-server-02/wordcount/input /user/ai-server-02/wordcount/output/
+### show output 
+  hadoop fs -cat /user/ai-server-02/wordcount/output/part-r-00000
+### starting and stoping and logs datanodes
+  - start-dfs.sh    // start datanode
+  - stop-dfs.sh     // stop datanode
+  - jps    // check if datanodes started
+  - cat $HADOOP_HOME/logs/hadoop-*-namenode-*.log  // checking the log
+  - hdfs namenode -format   // if error in file format,the error is webbrowser for node does not display ,this will reformat it but it will wipe out the existing data 
